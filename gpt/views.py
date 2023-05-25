@@ -1,6 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
+from django.contrib import auth
 from dotenv import load_dotenv
+from django.contrib.auth.models import User
+
 import os
 import openai
 
@@ -27,3 +30,31 @@ def chatbot (request):
         response = ask_openai(message)
         return JsonResponse({'response': response})
     return render(request, "chatbot.html")
+
+def login (request):
+    return render(request, "login.html")
+
+def logout (request):
+    return auth.logout(request)
+
+def register (request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        email = request.POST['email']
+        password1 = request.POST['password1']
+        password2 = request.POST['password2']
+
+        if password1 == password2:
+            try:
+                user = User.objects.create_user(username, email, password1)
+                user.save()
+                auth.login(request, user)
+                return redirect("chatbot")
+            except:
+                error_message = "Error creating user"
+                return render(request, "register.html", {'error_message': error_message})
+        else:
+            error_message = "Passwords do not match"
+            return render(request, "register.html", {'error_message': error_message})
+
+    return render(request, "register.html")
