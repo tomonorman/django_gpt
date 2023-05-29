@@ -26,15 +26,20 @@ def ask_openai(message):
 
 # Create your views here.
 def chatbot (request):
+    if request.user.id is None:
+        return render(request, "login.html")
+    
     chats = Chat.objects.filter(user=request.user)
-
+    
     if request.method == 'POST':
         message = request.POST.get('message')
         response = ask_openai(message)
         chat = Chat(user=request.user, message=message, response=response, created_at=timezone.now())
         chat.save()
         return JsonResponse({'response': response})
+    
     return render(request, "chatbot.html", {'chats': chats})
+    # return render(request, "chatbot.html")
 
 def login (request):
     if request.method == 'POST':
