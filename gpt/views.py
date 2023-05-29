@@ -32,10 +32,22 @@ def chatbot (request):
     return render(request, "chatbot.html")
 
 def login (request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = auth.authenticate(request, username=username, password=password)
+        if user is not None:
+            auth.login(request, user)
+            return redirect("chatbot")
+        else:
+            error_message = "Invalid credentials"
+            return render(request, "login.html", {'error_message': error_message})
+
     return render(request, "login.html")
 
 def logout (request):
-    return auth.logout(request)
+    auth.logout(request)
+    return redirect("login")
 
 def register (request):
     if request.method == 'POST':
