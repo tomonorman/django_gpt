@@ -3,6 +3,8 @@ from django.http import JsonResponse
 from django.contrib import auth
 from dotenv import load_dotenv
 from django.contrib.auth.models import User
+from django.utils import timezone
+from .models import Chat
 
 import os
 import openai
@@ -25,11 +27,15 @@ def ask_openai(message):
 
 # Create your views here.
 def chatbot (request):
+    chats = Chat.objects.filter(user=request.user)
+
     if request.method == 'POST':
         message = request.POST.get('message')
         response = ask_openai(message)
+        chat = Chat(user=request.user, message=message, response=response, created_at=timezone.now())
+        chat.save()
         return JsonResponse({'response': response})
-    return render(request, "chatbot.html")
+    return render(request, "chatbot.html", {'chats': chats})
 
 def login (request):
     if request.method == 'POST':
